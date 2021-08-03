@@ -90,9 +90,9 @@ impl Book {
 
     #[inline]
     fn on_cancel(&mut self, trade: &Trade) {
-        if trade.buy_trade() {
+        if trade.bid_id != 0 {
             self.bids_id.remove(&trade.bid_id);
-        } else if trade.sell_trade() {
+        } else if trade.ask_id != 0 {
             self.asks_id.remove(&trade.ask_id);
         }
     }
@@ -186,15 +186,15 @@ mod BookTest {
 
         let bid_trade = Trade {
             id: 3,
-            ask_id: 2,
+            ask_id: 0,
             bid_id: 1,
             price: 3.13,
             qty: 100,
             trade_type: crate::types::TradeType::CACNEL,
         };
-        book.on_trade(&bid_trade);
+        book.on_cancel(&bid_trade);
 
         assert_eq!(book.bids_id.len(), 0);
-        assert_eq!(book.asks_id.len(), 0);
+        assert_eq!(book.asks_id.len(), 1);
     }
 }
