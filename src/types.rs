@@ -12,6 +12,7 @@ pub enum TradeType {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Order {
+    pub time: i64,
     pub id: i64,
     pub price: f64,
     pub qty: i64,
@@ -19,8 +20,9 @@ pub struct Order {
 }
 
 impl Order {
-    fn new(id: i64, price: f64, qty: i64, side: Side) -> Order {
+    fn new(time: i64, id: i64, price: f64, qty: i64, side: Side) -> Order {
         Self {
+            time: time,
             id: id,
             price: price,
             qty: qty,
@@ -38,6 +40,7 @@ impl Order {
 }
 
 pub struct Trade {
+    pub time: i64,
     pub id: i64,
     pub price: f32,
     pub qty: i64,

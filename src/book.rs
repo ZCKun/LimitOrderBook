@@ -1,4 +1,4 @@
-use std::{any::Any, collections::BTreeMap};
+use std::{any::Any, collections::BTreeMap, fmt::Display};
 
 use crate::types::{Order, Trade};
 #[derive(Debug)]
@@ -8,6 +8,20 @@ pub struct Book {
     // Key: price, Value: all ids with the same price
     bids_price: BTreeMap<i64, Vec<i64>>,
     asks_price: BTreeMap<i64, Vec<i64>>,
+}
+
+impl Display for Book {
+    
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let asks = BTreeMap::<i64, i64>::new();
+        for (order_id, order) in &self.asks_id {
+            let price: i64 = (order.price * 100.0) as i64;
+            match asks.get_mut(price) {
+                Some(qty) => { qty += order.qty; }
+            }
+        }
+        write!(f, "")
+    }
 }
 
 impl Book {
