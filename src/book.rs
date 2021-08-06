@@ -1,4 +1,4 @@
-use std::{any::Any, collections::BTreeMap, fmt::Display};
+use std::{any::Any, collections::BTreeMap, fmt::{Display, format}};
 
 use crate::types::{Order, Trade};
 #[derive(Debug)]
@@ -13,14 +13,44 @@ pub struct Book {
 impl Display for Book {
     
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let asks = BTreeMap::<i64, i64>::new();
-        for (order_id, order) in &self.asks_id {
+        let mut asks = BTreeMap::<i64, i64>::new();
+        for (_, order) in &self.asks_id {
             let price: i64 = (order.price * 100.0) as i64;
-            match asks.get_mut(price) {
-                Some(qty) => { qty += order.qty; }
+            match asks.get_mut(&price) {
+                Some(qty) => { 
+                    *qty += order.qty;
+                },
+                None => {
+                    asks.insert(price, order.qty);
+                }
             }
         }
-        write!(f, "")
+
+        let mut bids = BTreeMap::<i64, i64>::new();
+        for (_, order) in &self.bids_id {
+            let price: i64 = (order.price * 100.0) as i64;
+            match bids.get_mut(&price) {
+                Some(qty) => { 
+                    *qty += order.qty;
+                },
+                None => {
+                    bids.insert(price, order.qty);
+                }
+            }
+        }
+
+        let mut msg = String::new();
+        for (price, qty) in asks.iter().rev() {
+            let p = *price as f64;
+            msg = format!("{}\n{:.2} | {}", msg, p / 100.0, qty);
+        }
+        msg = format!("{}\n-----------------", msg);
+        for (price, qty) in bids.iter().rev() {
+            let p = *price as f64;
+            msg = format!("{}\n{:.2} | {}", msg, p / 100.0, qty);
+        }
+
+        write!(f, "{}\n", msg)
     }
 }
 
@@ -35,6 +65,9 @@ impl Book {
     }
 
     pub fn add_order(&mut self, order: &Order) {
+        // 不处理非限价单
+        if order.price == 0.0 { return }
+
         let price = (order.price * 100.0) as i64;
 
         match order.side {

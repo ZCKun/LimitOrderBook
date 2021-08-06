@@ -1,3 +1,35 @@
+#[derive(Debug, Copy, Clone)]
+pub struct Price {
+    var: i64
+}
+
+impl Ord for Price {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match self.var.cmp(&other.var) {
+            std::cmp::Ordering::Less => std::cmp::Ordering::Greater,
+            std::cmp::Ordering::Greater => std::cmp::Ordering::Less,
+            std::cmp::Ordering::Equal => std::cmp::Ordering::Equal,
+        }
+    }
+}
+
+impl PartialEq for Price {
+    fn eq(&self, other: &Self) -> bool {
+        self.var == other.var
+    }
+}
+
+impl PartialOrd for Price {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Eq for Price {
+    
+}
+    
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Side {
     BID,
@@ -7,7 +39,7 @@ pub enum Side {
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TradeType {
     TRADED,
-    CACNEL
+    CACNEL,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -42,7 +74,7 @@ impl Order {
 pub struct Trade {
     pub time: i64,
     pub id: i64,
-    pub price: f32,
+    pub price: f64,
     pub qty: i64,
     pub ask_id: i64,
     pub bid_id: i64,
