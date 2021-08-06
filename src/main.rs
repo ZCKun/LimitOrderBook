@@ -1,5 +1,4 @@
-use std::{fmt::Display, fs, io::BufRead};
-
+use std::{collections::{BTreeMap, HashMap}, io::BufRead};
 use book::Book;
 use types::Side;
 
@@ -48,10 +47,7 @@ impl Eq for A {
 }
 */
 
-fn main() {
-
-    let mut book = book::Book::new();
-
+fn test_from_csv(book: &mut Book) {
     if let Ok(lines) = read_lines("files/order.csv") {
         for line in lines {
             if let Ok(row) = line {
@@ -104,6 +100,65 @@ fn main() {
             }
         }
     }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Item {
+    data_type: i32,
+    time: i64,
+    id: i64,
+    side: Option<String>,
+    price: f64,
+    qty: i64,
+    bid_id: Option<i64>,
+    ask_id: Option<i64>
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Data {
+    local_time:String, 
+    item:Item 
+}
+
+fn test_from_json(book: &mut Book) {
+    let content = std::fs::read_to_string("files/data.json").expect("open file failed.");
+    let data: BTreeMap<&str, Item> = serde_json::from_str(content.as_str()).expect("parser data failed.");
+    for (_, item) in data {
+        if item.price == 0.0 {
+            continue;
+        }
+
+        if item.data_type == 0 {
+            let order = Order {
+                time: item.time,
+                id: item.id,
+                price: item.price,
+                qty: item.qty,
+                side: if item.side.unwrap() == "BUY" { Side::BID } else {Side::ASK }
+            };
+            book.add_order(&order);
+        } else {
+            let trade_type = if item.ask_id.unwrap() == 0 || item.bid_id.unwrap() == 0 { TradeType::CACNEL } else {TradeType::TRADED };
+            let trade = Trade{
+                time: item.time,
+                id: item.id,
+                price: item.price,
+                qty: item.qty,
+                ask_id: item.ask_id.unwrap(),
+                bid_id: item.bid_id.unwrap(),
+                trade_type: trade_type
+            };
+            book.on_trade(&trade);
+            println!("{}\n{}", book, item.time)
+        }
+    }
+}
+
+fn main() {
+
+    let mut book = Book::new();
+    // test_from_csv(&mut book);
+    test_from_json(&mut book);
 
     println!("process done!")
 }

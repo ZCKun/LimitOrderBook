@@ -42,15 +42,15 @@ impl Display for Book {
         let mut msg = String::new();
         for (price, qty) in asks.iter().rev() {
             let p = *price as f64;
-            msg = format!("{}\n{:.2} | {}", msg, p / 100.0, qty);
+            msg = format!("{}\nask | {:.2} | {}", msg, p / 100.0, qty);
         }
         msg = format!("{}\n-----------------", msg);
         for (price, qty) in bids.iter().rev() {
             let p = *price as f64;
-            msg = format!("{}\n{:.2} | {}", msg, p / 100.0, qty);
+            msg = format!("{}\nbid | {:.2} | {}", msg, p / 100.0, qty);
         }
 
-        write!(f, "{}\n", msg)
+        write!(f, "{}", msg)
     }
 }
 
@@ -105,32 +105,51 @@ impl Book {
 
     #[inline]
     fn on_traded(&mut self, trade: &Trade) {
-        self.bids_id.retain(|order_id, _| *order_id >= trade.bid_id);
-        self.asks_id.retain(|order_id, _| *order_id >= trade.ask_id);
+        self.bids_id.retain(|order_id, order| *order_id >= trade.bid_id && order.price <= trade.price);
+        self.asks_id.retain(|order_id, order| *order_id >= trade.ask_id && order.price >= trade.price);
+
+        /*
+        for (order_id, order) in self.bids_id.iter_mut() {
+            let trade_id = &trade.bid_id;
+            let mut rm_order_id  = 0i64;
+
+            if order_id == trade_id {
+                if trade.qty >= order.qty {
+                    rm_order_id = *order_id;
+                } else {
+                    order.qty -= trade.qty;
+                }
+            } else if order.price >= order.price {
+                rm_order_id = *order_id;
+            }
+
+            self.bids_id.remove(&rm_order_id);
+        }*/
 
         match self.bids_id.get_mut(&trade.bid_id) {
             Some(order) => {
-                if order.qty == trade.qty {
+                if order.qty <= trade.qty {
                     self.bids_id.remove(&trade.bid_id);
                 } else {
                     order.qty -= trade.qty;
                 }
             }
             None => {
-                println!("not found order id:{}", trade.bid_id);
+                // println!("not found order id:{}", trade.bid_id);
             }
         }
 
         match self.asks_id.get_mut(&trade.ask_id) {
             Some(order) => {
-                if order.qty == trade.qty {
+
+                if order.qty <= trade.qty {
                     self.asks_id.remove(&trade.ask_id);
                 } else {
                     order.qty -= trade.qty;
                 }
             }
             None => {
-                println!("not found order id:{}", trade.ask_id);
+                // println!("not found order id:{}", trade.ask_id);
             }
         }
     }
@@ -155,6 +174,7 @@ mod BookTest {
         let mut book = Book::new();
 
         let bid_order = Order {
+            time: 0,
             id: 1,
             price: 3.14,
             qty: 100,
@@ -162,6 +182,7 @@ mod BookTest {
         };
 
         let ask_order = Order {
+            time: 0,
             id: 2,
             price: 3.14,
             qty: 100,
@@ -180,6 +201,7 @@ mod BookTest {
         let mut book = Book::new();
 
         let bid_order = Order {
+            time: 0,
             id: 1,
             price: 3.14,
             qty: 100,
@@ -187,26 +209,37 @@ mod BookTest {
         };
 
         let ask_order = Order {
+            time: 0,
             id: 2,
             price: 3.13,
             qty: 50,
             side: Side::ASK,
         };
+                
+        let ask_order2 = Order {
+            time: 0,
+            id: 3,
+            price: 3.12,
+            qty: 100,
+            side: Side::ASK,
+        };
 
         book.add_order(&bid_order);
         book.add_order(&ask_order);
+        book.add_order(&ask_order2);
 
         let bid_trade = Trade {
+            time: 0,
             id: 3,
-            ask_id: 2,
+            ask_id: 3,
             bid_id: 1,
             price: 3.13,
-            qty: 50,
+            qty: 100,
             trade_type: crate::types::TradeType::TRADED,
         };
         book.on_trade(&bid_trade);
 
-        assert_eq!(book.bids_id.len(), 1);
+        assert_eq!(book.bids_id.len(), 0);
         assert_eq!(book.asks_id.len(), 0);
     }
 
@@ -215,6 +248,7 @@ mod BookTest {
         let mut book = Book::new();
 
         let bid_order = Order {
+            time: 0,
             id: 1,
             price: 3.14,
             qty: 100,
@@ -222,6 +256,7 @@ mod BookTest {
         };
 
         let ask_order = Order {
+            time:0,
             id: 2,
             price: 3.13,
             qty: 100,
@@ -232,6 +267,7 @@ mod BookTest {
         book.add_order(&ask_order);
 
         let bid_trade = Trade {
+            time: 0,
             id: 3,
             ask_id: 0,
             bid_id: 1,
