@@ -108,24 +108,6 @@ impl Book {
         self.bids_id.retain(|order_id, order| *order_id >= trade.bid_id && order.price <= trade.price);
         self.asks_id.retain(|order_id, order| *order_id >= trade.ask_id && order.price >= trade.price);
 
-        /*
-        for (order_id, order) in self.bids_id.iter_mut() {
-            let trade_id = &trade.bid_id;
-            let mut rm_order_id  = 0i64;
-
-            if order_id == trade_id {
-                if trade.qty >= order.qty {
-                    rm_order_id = *order_id;
-                } else {
-                    order.qty -= trade.qty;
-                }
-            } else if order.price >= order.price {
-                rm_order_id = *order_id;
-            }
-
-            self.bids_id.remove(&rm_order_id);
-        }*/
-
         match self.bids_id.get_mut(&trade.bid_id) {
             Some(order) => {
                 if order.qty <= trade.qty {
