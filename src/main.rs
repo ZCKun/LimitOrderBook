@@ -1,4 +1,4 @@
-use std::{collections::{BTreeMap, HashMap}, io::BufRead};
+use std::{collections::BTreeMap, io::BufRead};
 use book::Book;
 use types::Side;
 
