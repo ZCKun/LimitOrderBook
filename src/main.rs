@@ -11,6 +11,7 @@ mod book;
 mod types;
 mod dat_reader;
 mod mdt_type;
+mod mdt_struct;
 
 fn test_from_csv(book: &mut Book) {
     if let Ok(lines) = read_lines("files/order.csv") {
@@ -109,7 +110,8 @@ fn main() {
     // let mut book = Book::new();
     // test_from_csv(&mut book);
     // test_from_json(&mut book);
-    let file_path = "C:/Users/x2h1z/Desktop/Data/dat/aa/202108020705.dat";
+    // let file_path = "C:/Users/x2h1z/Desktop/Data/dat/aa/202108020705.dat";
+    let file_path = "/Users/2h0x/Data/dat/202107140705.dat";
     let mut reader = DatReader::new(file_path);
     reader.read();
 
