@@ -3,9 +3,12 @@ use book::Book;
 use types::Side;
 
 use crate::types::{Order, Trade, TradeType};
+use std::io::{BufReader, Read};
+use byteorder::{LittleEndian, ByteOrder};
 
 mod book;
 mod types;
+mod dat_reader;
 
 fn test_from_csv(book: &mut Book) {
     if let Ok(lines) = read_lines("files/order.csv") {
@@ -101,10 +104,20 @@ fn test_from_json(book: &mut Book) {
 }
 
 fn main() {
-
-    let mut book = Book::new();
+    // let mut book = Book::new();
     // test_from_csv(&mut book);
-    test_from_json(&mut book);
+    // test_from_json(&mut book);
+    let file_path = "/Users/2h0x/Data/dat/202107140705.dat";
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .open(file_path)
+        .expect(format!("Can't open file {}", file_path).as_str());
+
+    let mut buf_reader = BufReader::new(file);
+    while buf_reader.fill_buf().unwrap().len() > 0 {
+        let header = Header::new(&mut buf_reader);
+        println!("1")
+    }
 
     println!("process done!")
 }
